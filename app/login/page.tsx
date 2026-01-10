@@ -19,16 +19,23 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    if (error) {
-      setError(error.message);
+      if (error) {
+        setError(error.message);
+        setLoading(false);
+      } else {
+        router.push('/dashboard');
+        router.refresh();
+      }
+    } catch (err) {
+      console.error('Login error:', err);
+      setError(err instanceof Error ? err.message : 'Failed to connect to authentication service. Please check your Supabase configuration.');
       setLoading(false);
-    } else {
-      router.push('/dashboard');
     }
   };
 
@@ -37,21 +44,27 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
 
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: email.split('@')[0],
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: email.split('@')[0],
+          }
         }
-      }
-    });
+      });
 
-    if (error) {
-      setError(error.message);
-      setLoading(false);
-    } else {
-      alert('Check your email for the confirmation link!');
+      if (error) {
+        setError(error.message);
+        setLoading(false);
+      } else {
+        alert('Check your email for the confirmation link!');
+        setLoading(false);
+      }
+    } catch (err) {
+      console.error('Sign up error:', err);
+      setError(err instanceof Error ? err.message : 'Failed to connect to authentication service. Please check your Supabase configuration.');
       setLoading(false);
     }
   };
