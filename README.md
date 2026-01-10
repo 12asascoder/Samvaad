@@ -166,31 +166,6 @@ While maintaining strong privacy, transparency, and user control.
 
 ---
 
-## 📁 Project Structure
-
-```
-samvaad/
-├── app/
-│   ├── api/
-│   │   ├── chat/           # AI chat endpoint
-│   │   └── advocacy/       # Advocacy templates API
-│   ├── dashboard/
-│   │   ├── chat/           # Main chat interface
-│   │   ├── learning/       # Learning analytics
-│   │   └── profile/        # User profile settings
-│   ├── login/              # Authentication
-│   └── page.tsx            # Landing page
-├── components/
-│   └── ui/                 # Reusable UI components
-├── lib/
-│   ├── ai/                 # AI logic & prompts
-│   ├── accessibility/      # Speech services
-│   └── supabase/           # Database clients
-├── supabase/
-│   └── migrations/         # Database schema
-└── database.types.ts       # TypeScript types for DB
-```
-
 ---
 
 ## 🎯 Key Pages
@@ -406,10 +381,6 @@ We welcome contributions! This project is built for the Microsoft Imagine Cup, a
 5. Respect user privacy in all features
 
 ---
-
-## 📄 License
-
-This project is licensed under the MIT License.
 
 ---
 
