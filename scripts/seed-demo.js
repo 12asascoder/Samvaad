@@ -38,8 +38,8 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 const supabaseAnon = createClient(supabaseUrl, supabaseAnonKey);
 
 // Demo account credentials
-// Using a more standard email format that Supabase accepts
-const DEMO_EMAIL = 'demo@samvaad.demo';
+// Using a standard email format that Supabase accepts
+const DEMO_EMAIL = 'demo@example.com';
 const DEMO_PASSWORD = 'Demo@Samvaad2024!';
 const DEMO_NAME = 'Samvaad Demo User';
 
