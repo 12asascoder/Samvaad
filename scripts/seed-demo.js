@@ -25,6 +25,7 @@ require('dotenv').config({ path: '.env.local' });
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
   console.error('❌ Error: Supabase credentials not found in .env.local');
@@ -32,7 +33,9 @@ if (!supabaseUrl || !supabaseAnonKey) {
   process.exit(1);
 }
 
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Use service role key if available (bypasses RLS), otherwise use anon key
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
+const supabaseAnon = createClient(supabaseUrl, supabaseAnonKey);
 
 // Demo account credentials
 const DEMO_EMAIL = 'demo@samvaad.ai';
@@ -45,9 +48,9 @@ async function seedDemoAccount() {
   try {
     let userId;
 
-    // Step 1: Create or get auth user
+    // Step 1: Create or get auth user (use anon client for auth)
     console.log('1️⃣  Creating demo user account...');
-    const { data: authData, error: authError } = await supabase.auth.signUp({
+    const { data: authData, error: authError } = await supabaseAnon.auth.signUp({
       email: DEMO_EMAIL,
       password: DEMO_PASSWORD,
       options: {
@@ -60,7 +63,7 @@ async function seedDemoAccount() {
     if (authError) {
       if (authError.message.includes('already registered') || authError.message.includes('already been registered')) {
         console.log('   ℹ️  User already exists, signing in...');
-        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        const { data: signInData, error: signInError } = await supabaseAnon.auth.signInWithPassword({
           email: DEMO_EMAIL,
           password: DEMO_PASSWORD
         });
@@ -107,41 +110,62 @@ async function seedDemoAccount() {
 
     // Step 3: Create comprehensive cognitive twin
     console.log('\n3️⃣  Creating cognitive twin with neural patterns...');
-    const { error: twinError } = await supabase
+    // First check if twin exists
+    const { data: existingTwin } = await supabase
       .from('cognitive_twins')
-      .upsert({
-        user_id: userId,
-        comprehension_score: 94.5,
-        communication_score: 88.0,
-        adaptability_score: 91.5,
-        learning_velocity: 1.25,
-        optimal_learning_hours: { start: 9, end: 11 },
-        strengths: [
-          'Visual Learning',
-          'Pattern Recognition',
-          'Self-Correction',
-          'Complex Problem Solving',
-          'Technical Concepts'
-        ],
-        areas_for_improvement: [
-          'Public Speaking',
-          'Advanced Mathematical Concepts',
-          'Social Negotiations'
-        ],
-        neural_patterns: {
-          preferredExplanationLength: 'moderate',
-          visualLearningAffinity: 9,
-          abstractThinkingLevel: 8,
-          practicalApplicationPreference: 9,
-          repetitionNeeded: 2,
-          feedbackResponseType: 'encouraging',
-          stressResponsePattern: 'focused',
-          socialInteractionComfort: 7,
-          learningPacePreference: 'moderate',
-          curiosityLevel: 9,
-          retentionStyle: 'visual_notes'
-        }
-      }, { onConflict: 'user_id' });
+      .select('id')
+      .eq('user_id', userId)
+      .single();
+    
+    const twinData = {
+      user_id: userId,
+      comprehension_score: 94.5,
+      communication_score: 88.0,
+      adaptability_score: 91.5,
+      learning_velocity: 1.25,
+      optimal_learning_hours: { start: 9, end: 11 },
+      strengths: [
+        'Visual Learning',
+        'Pattern Recognition',
+        'Self-Correction',
+        'Complex Problem Solving',
+        'Technical Concepts'
+      ],
+      areas_for_improvement: [
+        'Public Speaking',
+        'Advanced Mathematical Concepts',
+        'Social Negotiations'
+      ],
+      neural_patterns: {
+        preferredExplanationLength: 'moderate',
+        visualLearningAffinity: 9,
+        abstractThinkingLevel: 8,
+        practicalApplicationPreference: 9,
+        repetitionNeeded: 2,
+        feedbackResponseType: 'encouraging',
+        stressResponsePattern: 'focused',
+        socialInteractionComfort: 7,
+        learningPacePreference: 'moderate',
+        curiosityLevel: 9,
+        retentionStyle: 'visual_notes'
+      }
+    };
+
+    let twinError;
+    if (existingTwin) {
+      // Update existing
+      const { error } = await supabase
+        .from('cognitive_twins')
+        .update(twinData)
+        .eq('user_id', userId);
+      twinError = error;
+    } else {
+      // Insert new
+      const { error } = await supabase
+        .from('cognitive_twins')
+        .insert(twinData);
+      twinError = error;
+    }
 
     if (twinError) {
       console.error('   ❌ Error creating cognitive twin:', twinError.message);
