@@ -84,23 +84,44 @@ async function seedDemoAccount() {
 
     // Step 2: Create comprehensive profile
     console.log('\n2️⃣  Creating user profile...');
-    const { error: profileError } = await supabase
+    const profileData = {
+      id: userId,
+      full_name: DEMO_NAME,
+      learning_style: 'Visual',
+      communication_preference: 'Professional',
+      preferred_language: 'en',
+      timezone: 'America/New_York',
+      accessibility_settings: {
+        high_contrast: false,
+        text_to_speech: true,
+        speech_to_text: true,
+        reduced_motion: false,
+        font_size: 'medium'
+      }
+    };
+    
+    // Check if profile exists
+    const { data: existingProfile } = await supabase
       .from('profiles')
-      .upsert({
-        id: userId,
-        full_name: DEMO_NAME,
-        learning_style: 'Visual',
-        communication_preference: 'Professional',
-        preferred_language: 'en',
-        timezone: 'America/New_York',
-        accessibility_settings: {
-          high_contrast: false,
-          text_to_speech: true,
-          speech_to_text: true,
-          reduced_motion: false,
-          font_size: 'medium'
-        }
-      }, { onConflict: 'id' });
+      .select('id')
+      .eq('id', userId)
+      .single();
+    
+    let profileError;
+    if (existingProfile) {
+      // Update existing
+      const { error } = await supabase
+        .from('profiles')
+        .update(profileData)
+        .eq('id', userId);
+      profileError = error;
+    } else {
+      // Insert new
+      const { error } = await supabase
+        .from('profiles')
+        .insert(profileData);
+      profileError = error;
+    }
 
     if (profileError) {
       console.error('   ❌ Error creating profile:', profileError.message);
