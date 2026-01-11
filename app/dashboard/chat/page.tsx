@@ -189,7 +189,17 @@ export default function ChatInterface() {
     synthesisRef.current.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = selectedLanguage;
-    utterance.rate = 0.9;
+    utterance.rate = accessibilitySettings.speechRate || 0.9;
+    utterance.volume = accessibilitySettings.audioVolume || 1.0;
+    
+    // Select voice based on voiceType
+    const voices = synthesisRef.current.getVoices();
+    const preferredVoice = voices.find(voice =>
+      voice.lang === selectedLanguage && 
+      voice.name.toLowerCase().includes(accessibilitySettings.voiceType || 'neutral')
+    );
+    utterance.voice = preferredVoice || voices.find(voice => voice.lang === selectedLanguage) || null;
+    
     utterance.onstart = () => setIsSpeaking(true);
     utterance.onend = () => setIsSpeaking(false);
     synthesisRef.current.speak(utterance);
