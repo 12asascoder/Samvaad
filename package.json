@@ -29,7 +29,8 @@
     "start": "next start",
     "lint": "oxlint",
     "type-check": "tsc --noEmit",
-    "check-all": "npm run lint & npm run type-check & wait"
+    "check-all": "npm run lint & npm run type-check & wait",
+    "seed:demo": "node scripts/seed-demo.js"
   },
   "dependencies": {
     "@supabase/ssr": "^0.6.1",
