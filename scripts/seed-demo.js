@@ -398,9 +398,8 @@ async function seedDemoAccount() {
         topic: 'Introduction to Neural Networks',
         duration_minutes: 45,
         comprehension_level: 88,
-        learning_mode: 'interactive',
-        notes: 'Excellent grasp of basic concepts. Visual learning style very effective.',
-        metadata: { difficulty: 'intermediate', resources_used: ['video', 'interactive_demo'] }
+        learning_style_used: 'Visual',
+        session_notes: 'Excellent grasp of basic concepts. Visual learning style very effective.'
       },
       {
         user_id: userId,
@@ -461,7 +460,7 @@ async function seedDemoAccount() {
         user_id: userId,
         mode: 'learning',
         title: 'Understanding Neural Networks',
-        metadata: { topic: 'machine_learning', difficulty: 'intermediate' }
+        context: { topic: 'machine_learning', difficulty: 'intermediate' }
       })
       .select()
       .single();
@@ -511,7 +510,7 @@ async function seedDemoAccount() {
         user_id: userId,
         mode: 'advocacy',
         title: 'Salary Negotiation Email',
-        metadata: { template: 'salary_negotiation', outcome: 'pending' }
+        context: { template: 'salary_negotiation', outcome: 'pending' }
       })
       .select()
       .single();
