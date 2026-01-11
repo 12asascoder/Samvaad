@@ -64,12 +64,9 @@ export class AzureSpeechToTextService {
       const token = await this.getAccessToken();
 
       // Create WebSocket connection to Azure Speech Service
+      // Note: WebSocket API doesn't support custom headers - token should be in URL or use Azure Speech SDK
       const wsUrl = `wss://${this.config.region}.stt.speech.microsoft.com/speech/universal/v2?language=${options.language}&format=detailed`;
-      const ws = new WebSocket(wsUrl, [], {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
+      const ws = new WebSocket(wsUrl);
 
       this.recognitionSocket = ws;
 
@@ -85,9 +82,7 @@ export class AzureSpeechToTextService {
 
         source.connect(processor);
         if (this.recognitionContext?.destination) {
-          if (this.recognitionContext?.destination) {
           processor.connect(this.recognitionContext.destination);
-        }
         }
       };
 
