@@ -11,7 +11,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const supabase = createClient();
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -20,6 +19,7 @@ export default function LoginPage() {
     setError(null);
 
     try {
+      const supabase = createClient();
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -45,6 +45,7 @@ export default function LoginPage() {
     setError(null);
 
     try {
+      const supabase = createClient();
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -119,6 +120,7 @@ export default function LoginPage() {
 
           <div className="flex flex-col gap-3 pt-2">
             <button 
+              type="submit"
               onClick={handleLogin}
               disabled={loading}
               className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 flex items-center justify-center gap-2 group disabled:opacity-70"
@@ -128,6 +130,7 @@ export default function LoginPage() {
               )}
             </button>
             <button 
+              type="button"
               onClick={handleSignUp}
               disabled={loading}
               className="w-full bg-white text-slate-700 border border-slate-200 py-4 rounded-2xl font-bold hover:bg-slate-50 transition-all"
