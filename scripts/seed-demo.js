@@ -9,7 +9,7 @@
  * 3. Run: node scripts/seed-demo.js
  * 
  * This will create:
- * - Demo user account (demo@samvaad.ai / Demo@Samvaad2024!)
+ * - Demo user account (demo.samvaad@gmail.com / Demo@Samvaad2024!)
  * - Complete profile with accessibility settings
  * - Cognitive twin with rich neural patterns
  * - Multiple learning goals across categories
@@ -49,38 +49,148 @@ async function seedDemoAccount() {
   try {
     let userId;
 
-    // Step 1: Create or get auth user (use anon client for auth)
+    // Step 1: Create or get auth user
     console.log('1️⃣  Creating demo user account...');
-    const { data: authData, error: authError } = await supabaseAnon.auth.signUp({
+    console.log(`   Email: ${DEMO_EMAIL}`);
+    
+    // First, try to sign in (in case user already exists)
+    const { data: signInData, error: signInError } = await supabaseAnon.auth.signInWithPassword({
       email: DEMO_EMAIL,
-      password: DEMO_PASSWORD,
-      options: {
-        data: {
-          full_name: DEMO_NAME,
-        }
-      }
+      password: DEMO_PASSWORD
     });
-
-    if (authError) {
-      if (authError.message.includes('already registered') || authError.message.includes('already been registered')) {
-        console.log('   ℹ️  User already exists, signing in...');
-        const { data: signInData, error: signInError } = await supabaseAnon.auth.signInWithPassword({
+    
+    if (signInData?.user && !signInError) {
+      userId = signInData.user.id;
+      console.log('   ✅ User already exists, signed in with ID:', userId);
+    } else {
+      // User doesn't exist, try to create with service role (bypasses email validation)
+      if (supabaseServiceKey && supabaseServiceKey !== supabaseAnonKey) {
+        console.log('   ℹ️  Using service role to create user (bypasses email validation)...');
+        try {
+          const { data: adminData, error: adminError } = await supabase.auth.admin.createUser({
+            email: DEMO_EMAIL,
+            password: DEMO_PASSWORD,
+            email_confirm: true, // Auto-confirm email
+            user_metadata: {
+              full_name: DEMO_NAME,
+            }
+          });
+          
+          if (adminError) {
+            if (adminError.message.includes('already registered') || adminError.message.includes('already been registered') || adminError.message.includes('User already registered')) {
+              console.log('   ℹ️  User exists, trying sign in...');
+              const { data: retrySignIn, error: retryError } = await supabaseAnon.auth.signInWithPassword({
+                email: DEMO_EMAIL,
+                password: DEMO_PASSWORD
+              });
+              if (retryError || !retrySignIn?.user) {
+                console.error('   ❌ Could not access existing user:', retryError?.message);
+                console.error('   💡 Tip: Try deleting the user from Supabase Auth dashboard and run again');
+                return;
+              }
+              userId = retrySignIn.user.id;
+              console.log('   ✅ Signed in with existing user ID:', userId);
+            } else {
+              console.error('   ❌ Error creating user with admin:', adminError.message);
+              // Fallback to regular signup
+              console.log('   ℹ️  Falling back to regular signup...');
+              const { data: authData, error: authError } = await supabaseAnon.auth.signUp({
+                email: DEMO_EMAIL,
+                password: DEMO_PASSWORD,
+                options: {
+                  data: {
+                    full_name: DEMO_NAME,
+                  }
+                }
+              });
+              
+              if (authError) {
+                console.error('   ❌ Error creating user:', authError.message);
+                console.error('   💡 Possible solutions:');
+                console.error('      1. Check Supabase Auth settings → Email Auth → Disable email confirmation');
+                console.error('      2. Use a real email address you can verify');
+                console.error('      3. Check if email domain is blocked in Supabase settings');
+                return;
+              }
+              
+              if (authData?.user) {
+                userId = authData.user.id;
+                console.log('   ✅ User created with ID:', userId);
+              } else {
+                console.error('   ❌ User creation failed: No user data returned');
+                return;
+              }
+            }
+          } else if (adminData?.user) {
+            userId = adminData.user.id;
+            console.log('   ✅ User created with admin API, ID:', userId);
+          }
+        } catch (adminErr) {
+          console.error('   ❌ Admin API error:', adminErr.message);
+          console.log('   ℹ️  Falling back to regular signup...');
+          const { data: authData, error: authError } = await supabaseAnon.auth.signUp({
+            email: DEMO_EMAIL,
+            password: DEMO_PASSWORD,
+            options: {
+              data: {
+                full_name: DEMO_NAME,
+              }
+            }
+          });
+          
+          if (authError) {
+            console.error('   ❌ Error creating user:', authError.message);
+            return;
+          }
+          
+          if (authData?.user) {
+            userId = authData.user.id;
+            console.log('   ✅ User created with ID:', userId);
+          } else {
+            console.error('   ❌ User creation failed: No user data returned');
+            return;
+          }
+        }
+      } else {
+        // No service role key, use regular signup
+        console.log('   ℹ️  Using regular signup (service role key not available)...');
+        console.log('   💡 Tip: Add SUPABASE_SERVICE_ROLE_KEY to .env.local for better user creation');
+        const { data: authData, error: authError } = await supabaseAnon.auth.signUp({
           email: DEMO_EMAIL,
-          password: DEMO_PASSWORD
+          password: DEMO_PASSWORD,
+          options: {
+            data: {
+              full_name: DEMO_NAME,
+            }
+          }
         });
-        if (signInError || !signInData?.user) {
-          console.error('   ❌ Could not access existing user:', signInError?.message);
+        
+        if (authError) {
+          if (authError.message.includes('already registered') || authError.message.includes('already been registered')) {
+            console.log('   ℹ️  User already exists, signing in...');
+            const { data: retrySignIn, error: retryError } = await supabaseAnon.auth.signInWithPassword({
+              email: DEMO_EMAIL,
+              password: DEMO_PASSWORD
+            });
+            if (retryError || !retrySignIn?.user) {
+              console.error('   ❌ Could not access existing user:', retryError?.message);
+              return;
+            }
+            userId = retrySignIn.user.id;
+            console.log('   ✅ Signed in with existing user ID:', userId);
+          } else {
+            console.error('   ❌ Error creating user:', authError.message);
+            console.error('   💡 Tip: Add SUPABASE_SERVICE_ROLE_KEY to .env.local to bypass email validation');
+            return;
+          }
+        } else if (authData?.user) {
+          userId = authData.user.id;
+          console.log('   ✅ User created with ID:', userId);
+        } else {
+          console.error('   ❌ User creation failed: No user data returned');
           return;
         }
-        userId = signInData.user.id;
-        console.log('   ✅ Signed in with existing user ID:', userId);
-      } else {
-        console.error('   ❌ Error creating user:', authError.message);
-        return;
       }
-    } else {
-      userId = authData.user.id;
-      console.log('   ✅ User created with ID:', userId);
     }
 
     // Step 2: Create comprehensive profile
@@ -97,7 +207,19 @@ async function seedDemoAccount() {
         text_to_speech: true,
         speech_to_text: true,
         reduced_motion: false,
-        font_size: 'medium'
+        font_size: 'medium',
+        font_style: 'default',
+        line_spacing: 'normal',
+        speech_rate: 1.0,
+        voice_type: 'neutral',
+        audio_volume: 1.0,
+        screen_reader_support: false,
+        large_text_mode: false,
+        color_blind_mode: false,
+        live_captions: false,
+        visual_alerts: false,
+        simplified_language: false,
+        focus_mode: false,
       }
     };
     
@@ -175,17 +297,10 @@ async function seedDemoAccount() {
 
     let twinError;
     if (existingTwin) {
-      // Update existing
-      const { error } = await supabase
-        .from('cognitive_twins')
-        .update(twinData)
-        .eq('user_id', userId);
+      const { error } = await supabase.from('cognitive_twins').update(twinData).eq('user_id', userId);
       twinError = error;
     } else {
-      // Insert new
-      const { error } = await supabase
-        .from('cognitive_twins')
-        .insert(twinData);
+      const { error } = await supabase.from('cognitive_twins').insert(twinData);
       twinError = error;
     }
 
@@ -201,84 +316,74 @@ async function seedDemoAccount() {
       {
         user_id: userId,
         title: 'Master Machine Learning Fundamentals',
-        description: 'Understand core ML concepts including supervised and unsupervised learning, neural networks, and model evaluation',
-        progress: 65,
-        status: 'active',
-        category: 'technical',
-        target_date: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        category: 'Technical',
+        description: 'Learn core ML concepts, algorithms, and practical applications',
+        target_date: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
+        progress_percentage: 65,
         milestones: [
-          { title: 'Complete supervised learning basics', completed: true },
-          { title: 'Understand neural networks', completed: true },
-          { title: 'Build first ML model', completed: false },
-          { title: 'Master model evaluation', completed: false }
+          { title: 'Complete Linear Regression', completed: true },
+          { title: 'Learn Neural Networks', completed: true },
+          { title: 'Build First ML Model', completed: false },
+          { title: 'Deploy Model to Production', completed: false }
         ]
       },
       {
         user_id: userId,
         title: 'Improve Public Speaking Skills',
-        description: 'Build confidence in presenting ideas to large audiences and handling Q&A sessions',
-        progress: 45,
-        status: 'active',
-        category: 'communication',
-        target_date: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        category: 'Communication',
+        description: 'Build confidence and clarity in public presentations',
+        target_date: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(),
+        progress_percentage: 45,
         milestones: [
-          { title: 'Practice basic presentation structure', completed: true },
-          { title: 'Deliver first practice presentation', completed: false },
-          { title: 'Handle Q&A confidently', completed: false }
+          { title: 'Complete Speech Writing Course', completed: true },
+          { title: 'Practice with Small Groups', completed: false },
+          { title: 'Deliver First Public Talk', completed: false }
         ]
       },
       {
         user_id: userId,
         title: 'Learn Spanish Fluently',
-        description: 'Achieve conversational fluency in Spanish for work opportunities and travel',
-        progress: 80,
-        status: 'active',
-        category: 'language',
-        target_date: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        category: 'Language',
+        description: 'Achieve conversational fluency in Spanish',
+        target_date: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString(),
+        progress_percentage: 80,
         milestones: [
-          { title: 'Master basic greetings and introductions', completed: true },
-          { title: 'Complete verb conjugations', completed: true },
-          { title: 'Hold 15-minute conversation', completed: true },
-          { title: 'Achieve business-level fluency', completed: false }
+          { title: 'Complete Beginner Course', completed: true },
+          { title: 'Master Verb Conjugations', completed: true },
+          { title: 'Practice with Native Speakers', completed: true },
+          { title: 'Pass B2 Certification', completed: false }
         ]
       },
       {
         user_id: userId,
         title: 'Financial Literacy Mastery',
-        description: 'Understand personal finance, investments, budgeting, and retirement planning',
-        progress: 90,
-        status: 'active',
-        category: 'professional',
-        target_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        category: 'Professional',
+        description: 'Understand personal finance, investing, and wealth building',
+        target_date: new Date(Date.now() + 120 * 24 * 60 * 60 * 1000).toISOString(),
+        progress_percentage: 90,
         milestones: [
-          { title: 'Create personal budget', completed: true },
-          { title: 'Understand investment basics', completed: true },
-          { title: 'Plan retirement strategy', completed: true },
-          { title: 'Optimize tax strategy', completed: false }
+          { title: 'Learn Budgeting Basics', completed: true },
+          { title: 'Understand Investment Options', completed: true },
+          { title: 'Create Investment Portfolio', completed: true },
+          { title: 'Plan Retirement Strategy', completed: false }
         ]
       },
       {
         user_id: userId,
         title: 'Conflict Resolution Techniques',
-        description: 'Master techniques for resolving conflicts in professional and personal settings',
-        progress: 75,
-        status: 'active',
-        category: 'communication',
-        target_date: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        category: 'Communication',
+        description: 'Master negotiation and conflict resolution skills',
+        target_date: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000).toISOString(),
+        progress_percentage: 75,
         milestones: [
-          { title: 'Learn active listening', completed: true },
-          { title: 'Practice de-escalation techniques', completed: true },
-          { title: 'Apply in real scenarios', completed: false }
+          { title: 'Learn Active Listening', completed: true },
+          { title: 'Practice Mediation Techniques', completed: true },
+          { title: 'Apply in Real Scenarios', completed: false }
         ]
       }
     ];
 
-    // Delete existing goals and insert new ones
-    await supabase.from('learning_goals').delete().eq('user_id', userId);
-    const { error: goalsError } = await supabase
-      .from('learning_goals')
-      .insert(goals);
-
+    const { error: goalsError } = await supabase.from('learning_goals').upsert(goals, { onConflict: 'id' });
     if (goalsError) {
       console.error('   ❌ Error creating goals:', goalsError.message);
     } else {
@@ -292,199 +397,151 @@ async function seedDemoAccount() {
         user_id: userId,
         topic: 'Introduction to Neural Networks',
         duration_minutes: 45,
-        comprehension_level: 88,
-        engagement_score: 85,
-        mistakes_count: 2,
-        corrections_made: 2,
-        learning_style_used: 'Visual',
-        session_notes: 'Great session! Visual diagrams helped understand the concepts better. Ready to move to convolutional networks.',
-        started_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-        ended_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000 + 45 * 60 * 1000).toISOString()
+        comprehension_score: 88,
+        learning_mode: 'interactive',
+        notes: 'Excellent grasp of basic concepts. Visual learning style very effective.',
+        metadata: { difficulty: 'intermediate', resources_used: ['video', 'interactive_demo'] }
       },
       {
         user_id: userId,
-        topic: 'Spanish Verb Conjugations - Present Tense',
+        topic: 'Spanish Verb Conjugations',
         duration_minutes: 30,
-        comprehension_level: 75,
-        engagement_score: 80,
-        mistakes_count: 4,
-        corrections_made: 3,
-        learning_style_used: 'Auditory',
-        session_notes: 'Practice with audio pronunciation was very helpful. Need more practice with irregular verbs.',
-        started_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-        ended_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000 + 30 * 60 * 1000).toISOString()
+        comprehension_score: 75,
+        learning_mode: 'practice',
+        notes: 'Struggling with irregular verbs. Needs more repetition.',
+        metadata: { difficulty: 'beginner', resources_used: ['flashcards', 'audio'] }
       },
       {
         user_id: userId,
-        topic: 'Investment Strategies - Index Funds',
+        topic: 'Investment Portfolio Diversification',
         duration_minutes: 60,
-        comprehension_level: 95,
-        engagement_score: 90,
-        mistakes_count: 0,
-        corrections_made: 0,
-        learning_style_used: 'Visual',
-        session_notes: 'Excellent comprehension. Ready to move to advanced topics like sector allocation.',
-        started_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-        ended_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000 + 60 * 60 * 1000).toISOString()
+        comprehension_score: 92,
+        learning_mode: 'interactive',
+        notes: 'Strong understanding of risk management principles.',
+        metadata: { difficulty: 'advanced', resources_used: ['case_studies', 'calculator'] }
       },
       {
         user_id: userId,
-        topic: 'Presentation Techniques - Storytelling',
+        topic: 'Public Speaking: Body Language',
+        duration_minutes: 25,
+        comprehension_score: 70,
+        learning_mode: 'practice',
+        notes: 'Needs more practice with gestures and eye contact.',
+        metadata: { difficulty: 'beginner', resources_used: ['video', 'mirror_practice'] }
+      },
+      {
+        user_id: userId,
+        topic: 'Conflict Resolution: Active Listening',
         duration_minutes: 40,
-        comprehension_level: 70,
-        engagement_score: 75,
-        mistakes_count: 3,
-        corrections_made: 2,
-        learning_style_used: 'Kinesthetic',
-        session_notes: 'Hands-on practice with mock presentations improved confidence. Need to work on pacing.',
-        started_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-        ended_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000 + 40 * 60 * 1000).toISOString()
+        comprehension_score: 85,
+        learning_mode: 'interactive',
+        notes: 'Good progress on empathy and understanding perspectives.',
+        metadata: { difficulty: 'intermediate', resources_used: ['role_play', 'scenarios'] }
       },
       {
         user_id: userId,
-        topic: 'Conflict Resolution - Active Listening',
-        duration_minutes: 35,
-        comprehension_level: 82,
-        engagement_score: 78,
-        mistakes_count: 2,
-        corrections_made: 2,
-        learning_style_used: 'Reading/Writing',
-        session_notes: 'Reading case studies and writing responses helped internalize the techniques.',
-        started_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-        ended_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000 + 35 * 60 * 1000).toISOString()
-      },
-      {
-        user_id: userId,
-        topic: 'Machine Learning - Gradient Descent',
+        topic: 'Machine Learning: Gradient Descent',
         duration_minutes: 50,
-        comprehension_level: 85,
-        engagement_score: 88,
-        mistakes_count: 1,
-        corrections_made: 1,
-        learning_style_used: 'Visual',
-        session_notes: 'Visualizing the gradient descent process made it much clearer. Great progress!',
-        started_at: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
-        ended_at: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000 + 50 * 60 * 1000).toISOString()
+        comprehension_score: 90,
+        learning_mode: 'interactive',
+        notes: 'Excellent visualization helped understand the concept quickly.',
+        metadata: { difficulty: 'advanced', resources_used: ['interactive_demo', 'visualizations'] }
       }
     ];
 
-    await supabase.from('learning_sessions').delete().eq('user_id', userId);
-    const { error: sessionsError } = await supabase
-      .from('learning_sessions')
-      .insert(sessions);
-
+    const { error: sessionsError } = await supabase.from('learning_sessions').insert(sessions);
     if (sessionsError) {
       console.error('   ❌ Error creating sessions:', sessionsError.message);
     } else {
       console.log(`   ✅ Created ${sessions.length} learning sessions`);
     }
 
-    // Step 6: Create conversations with messages
-    console.log('\n6️⃣  Creating conversations with messages...');
+    // Step 6: Create conversations and messages
+    console.log('\n6️⃣  Creating conversations and messages...');
     
     // Learning conversation
-    const { data: learningConv, error: learningConvError } = await supabase
+    const { data: learningConv, error: conv1Error } = await supabase
       .from('conversations')
       .insert({
         user_id: userId,
-        title: 'Neural Networks Learning Session',
-        mode: 'learning',
-        context: { topic: 'Neural Networks', difficulty: 'intermediate' },
-        is_active: false
+        conversation_type: 'learning',
+        title: 'Understanding Neural Networks',
+        metadata: { topic: 'machine_learning', difficulty: 'intermediate' }
       })
       .select()
       .single();
 
-    if (learningConvError) {
-      console.error('   ❌ Error creating learning conversation:', learningConvError.message);
+    if (conv1Error) {
+      console.error('   ❌ Error creating learning conversation:', conv1Error.message);
     } else {
       const learningMessages = [
         {
           conversation_id: learningConv.id,
           role: 'user',
-          content: 'Can you explain how neural networks work?',
-          message_type: 'text'
+          content: 'Can you explain neural networks in a simple way?',
+          metadata: { learning_style: 'visual' }
         },
         {
           conversation_id: learningConv.id,
           role: 'assistant',
-          content: 'Absolutely! Neural networks are inspired by how our brains work. Think of them as interconnected nodes (neurons) organized in layers. Each connection has a "weight" that gets adjusted during training. Since you\'re a visual learner, imagine it like this: you have an input layer (the data you feed in), hidden layers (where processing happens), and an output layer (the result).',
-          message_type: 'text'
+          content: 'Absolutely! Think of a neural network like a simplified version of how your brain works. Imagine you have layers of interconnected "neurons" (nodes) that process information. Each connection has a "weight" that determines how much influence it has. When you feed data in, it flows through these layers, getting transformed at each step, until you get an output - like recognizing a cat in a photo or predicting tomorrow\'s weather. The network "learns" by adjusting these weights based on examples, getting better over time!',
+          metadata: { explanation_style: 'analogy', visual_aids: true }
         },
         {
           conversation_id: learningConv.id,
           role: 'user',
-          content: 'How does the network learn?',
-          message_type: 'text'
+          content: 'That makes sense! How does it actually learn?',
+          metadata: { follow_up: true }
         },
         {
           conversation_id: learningConv.id,
           role: 'assistant',
-          content: 'Great question! The network learns through a process called "backpropagation." When the network makes a prediction, it compares it to the correct answer. If there\'s a difference (error), it works backwards through the layers, adjusting the weights. Over many iterations, these weights get fine-tuned. It\'s like learning from mistakes - each adjustment makes the network better at future predictions.',
-          message_type: 'text'
+          content: 'Great question! The learning process uses something called "backpropagation." Here\'s the simple version: 1) The network makes a prediction, 2) We compare it to the correct answer and calculate the error, 3) We work backwards through the network, adjusting the weights to reduce that error. It\'s like practicing a skill - you try, see how close you were, adjust, and try again. Over many examples, the network gets really good at the task!',
+          metadata: { explanation_style: 'step_by_step', complexity: 'simplified' }
         }
       ];
 
-      const { error: learningMsgError } = await supabase
-        .from('messages')
-        .insert(learningMessages);
-
-      if (learningMsgError) {
-        console.error('   ❌ Error creating learning messages:', learningMsgError.message);
+      const { error: msg1Error } = await supabase.from('messages').insert(learningMessages);
+      if (msg1Error) {
+        console.error('   ❌ Error creating learning messages:', msg1Error.message);
       } else {
         console.log('   ✅ Created learning conversation with messages');
       }
     }
 
     // Advocacy conversation
-    const { data: advocacyConv, error: advocacyConvError } = await supabase
+    const { data: advocacyConv, error: conv2Error } = await supabase
       .from('conversations')
       .insert({
         user_id: userId,
-        title: 'Salary Negotiation Discussion',
-        mode: 'advocacy',
-        context: { scenario: 'salary_negotiation', recipient: 'manager' },
-        is_active: false
+        conversation_type: 'advocacy',
+        title: 'Salary Negotiation Email',
+        metadata: { template: 'salary_negotiation', outcome: 'pending' }
       })
       .select()
       .single();
 
-    if (advocacyConvError) {
-      console.error('   ❌ Error creating advocacy conversation:', advocacyConvError.message);
+    if (conv2Error) {
+      console.error('   ❌ Error creating advocacy conversation:', conv2Error.message);
     } else {
       const advocacyMessages = [
         {
           conversation_id: advocacyConv.id,
           role: 'user',
-          content: 'I need help writing a salary negotiation email to my manager',
-          message_type: 'text'
+          content: 'I need help writing a professional email to negotiate my salary.',
+          metadata: { context: 'career_advancement' }
         },
         {
           conversation_id: advocacyConv.id,
           role: 'assistant',
-          content: 'I\'d be happy to help! Let me understand your situation better. What\'s your current position, how long have you been with the company, and what are some key achievements you\'d like to highlight?',
-          message_type: 'text'
-        },
-        {
-          conversation_id: advocacyConv.id,
-          role: 'user',
-          content: 'Senior Developer, 2 years, led a team of 5 and increased performance by 30%',
-          message_type: 'text'
-        },
-        {
-          conversation_id: advocacyConv.id,
-          role: 'assistant',
-          content: 'Perfect! Based on your profile, I\'ll craft a professional yet empathetic message that highlights your contributions. Here\'s a draft that aligns with your communication style...',
-          message_type: 'text'
+          content: 'I\'d be happy to help you craft a professional salary negotiation email. Here\'s a template that balances assertiveness with respect:\n\nSubject: Discussion Regarding Compensation\n\nDear [Manager\'s Name],\n\nI hope this message finds you well. I wanted to take a moment to discuss my compensation, as I believe my contributions and growth in the role warrant a review.\n\nSince joining the team, I have [specific achievements]. I am committed to continuing to deliver value and would appreciate the opportunity to discuss aligning my compensation with my contributions.\n\nI would be happy to schedule a time to discuss this further at your convenience.\n\nThank you for your consideration.\n\nBest regards,\n[Your Name]',
+          metadata: { template_used: 'salary_negotiation', tone: 'professional' }
         }
       ];
 
-      const { error: advocacyMsgError } = await supabase
-        .from('messages')
-        .insert(advocacyMessages);
-
-      if (advocacyMsgError) {
-        console.error('   ❌ Error creating advocacy messages:', advocacyMsgError.message);
+      const { error: msg2Error } = await supabase.from('messages').insert(advocacyMessages);
+      if (msg2Error) {
+        console.error('   ❌ Error creating advocacy messages:', msg2Error.message);
       } else {
         console.log('   ✅ Created advocacy conversation with messages');
       }
@@ -492,76 +549,28 @@ async function seedDemoAccount() {
 
     // Step 7: Create advocacy sessions
     console.log('\n7️⃣  Creating advocacy sessions...');
-    
-    // Get a template ID for salary negotiation
-    const { data: templates } = await supabase
-      .from('advocacy_templates')
-      .select('id')
-      .eq('title', 'Salary Negotiation')
-      .single();
-
     const advocacySessions = [
       {
         user_id: userId,
-        conversation_id: advocacyConv?.id || null,
-        template_id: templates?.id || null,
         scenario_type: 'salary_negotiation',
-        context: {
-          position: 'Senior Developer',
-          current_salary: 95000,
-          requested_salary: 110000,
-          achievements: ['Led team of 5 developers', 'Increased product performance by 30%', 'Delivered 3 major features on time'],
-          time_period: '2 years',
-          location: 'San Francisco Bay Area'
-        },
-        generated_message: `Dear [Manager Name],
-
-Thank you for the opportunity to discuss my compensation. Based on my contributions over the past 2 years, including leading a team of 5 developers and increasing product performance by 30%, I would like to discuss a salary adjustment.
-
-After researching market rates for Senior Developer positions in the San Francisco Bay Area, I believe a salary of $110,000 would be appropriate given my experience and the value I bring to the team.
-
-I am open to discussing this further at your convenience.
-
-Best regards,
-${DEMO_NAME}`,
-        outcome: 'successful',
-        feedback: 'Received positive response and salary adjustment approved!',
-        rating: 5,
-        completed_at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString()
+        template_used: 'salary_negotiation',
+        message_content: 'Professional salary negotiation email sent to manager',
+        outcome: 'pending',
+        cultural_context: 'professional',
+        metadata: { recipient: 'manager', urgency: 'medium' }
       },
       {
         user_id: userId,
-        scenario_type: 'fee_extension',
-        context: {
-          recipient: 'Billing Department',
-          payment_type: 'Tuition Fee',
-          due_date: '2024-02-15',
-          reason: 'Unexpected medical expenses',
-          organization: 'University',
-          requested_date: '2024-03-15'
-        },
-        generated_message: `Dear Billing Department,
-
-I hope this message finds you well. I am writing to respectfully request an extension for Tuition Fee that is currently due on 2024-02-15.
-
-I have encountered unexpected medical expenses that have temporarily affected my financial situation. I have maintained a consistent track record with University and am committed to fulfilling my obligations. I would be grateful if you could consider extending the deadline to 2024-03-15.
-
-Thank you for your understanding and consideration.
-
-Best regards,
-${DEMO_NAME}`,
-        outcome: 'successful',
-        feedback: 'Extension granted with no late fees. Very understanding response.',
-        rating: 5,
-        completed_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
+        scenario_type: 'service_booking',
+        template_used: 'service_booking',
+        message_content: 'Requested appointment for medical consultation',
+        outcome: 'confirmed',
+        cultural_context: 'neutral',
+        metadata: { service_type: 'medical', date_requested: new Date().toISOString() }
       }
     ];
 
-    await supabase.from('advocacy_sessions').delete().eq('user_id', userId);
-    const { error: advocacyError } = await supabase
-      .from('advocacy_sessions')
-      .insert(advocacySessions);
-
+    const { error: advocacyError } = await supabase.from('advocacy_sessions').insert(advocacySessions);
     if (advocacyError) {
       console.error('   ❌ Error creating advocacy sessions:', advocacyError.message);
     } else {
@@ -575,62 +584,32 @@ ${DEMO_NAME}`,
         user_id: userId,
         insight_type: 'pattern',
         title: 'Optimal Learning Time Detected',
-        description: 'Your cognitive twin noticed you perform best between 9:00 AM and 11:00 AM. Consider scheduling important learning sessions during this window for maximum retention.',
+        description: 'Your cognitive twin noticed you perform best between 9:00 AM and 11:00 AM. Consider scheduling important learning sessions during this window.',
         priority: 'medium',
         is_actionable: true,
-        is_read: false,
-        action_taken: false,
-        metadata: { optimalHours: { start: 9, end: 11 }, category: 'learning_pattern' }
+        metadata: { optimalHours: { start: 9, end: 11 }, confidence: 0.87 }
       },
       {
         user_id: userId,
-        insight_type: 'learning',
+        insight_type: 'achievement',
         title: 'Visual Learning Efficiency Increased',
         description: 'Your visual learning efficiency has increased by 15% in technical subjects. Keep using visual aids and diagrams!',
         priority: 'low',
         is_actionable: false,
-        is_read: false,
-        metadata: { improvement: 15, category: 'technical' }
+        metadata: { improvement: 15, category: 'technical', trend: 'positive' }
       },
       {
         user_id: userId,
         insight_type: 'recommendation',
-        title: 'Communication Style Adjustment',
-        description: 'Your cognitive twin suggests using "Professional-Empathetic" style for upcoming salary negotiation based on your patterns.',
+        title: 'Focus on Public Speaking Practice',
+        description: 'Based on your learning patterns, you might benefit from more structured practice sessions for public speaking. Consider joining a local Toastmasters group.',
         priority: 'high',
         is_actionable: true,
-        is_read: false,
-        action_taken: false,
-        metadata: { suggestedStyle: 'Professional-Empathetic', context: 'salary_negotiation' }
-      },
-      {
-        user_id: userId,
-        insight_type: 'pattern',
-        title: 'High Engagement with Hands-On Practice',
-        description: 'Sessions using kinesthetic learning style show 12% higher engagement. Consider incorporating more practical exercises.',
-        priority: 'medium',
-        is_actionable: true,
-        is_read: false,
-        action_taken: false,
-        metadata: { engagementIncrease: 12, learningStyle: 'Kinesthetic' }
-      },
-      {
-        user_id: userId,
-        insight_type: 'communication',
-        title: 'Advocacy Success Rate: 100%',
-        description: 'Your advocacy messages have a 100% success rate! Your professional yet empathetic communication style is highly effective.',
-        priority: 'low',
-        is_actionable: false,
-        is_read: false,
-        metadata: { successRate: 100, totalSessions: 2 }
+        metadata: { category: 'communication', suggestedAction: 'join_group' }
       }
     ];
 
-    await supabase.from('neural_insights').delete().eq('user_id', userId);
-    const { error: insightsError } = await supabase
-      .from('neural_insights')
-      .insert(insights);
-
+    const { error: insightsError } = await supabase.from('neural_insights').insert(insights);
     if (insightsError) {
       console.error('   ❌ Error creating insights:', insightsError.message);
     } else {
@@ -639,20 +618,15 @@ ${DEMO_NAME}`,
 
     // Step 9: Create voice profile
     console.log('\n9️⃣  Creating voice profile...');
-    await supabase.from('voice_profiles').delete().eq('user_id', userId);
-    const { error: voiceError } = await supabase
-      .from('voice_profiles')
-      .insert({
-        user_id: userId,
-        voice_name: 'Neural',
-        voice_settings: {
-          pitch: 1.0,
-          rate: 1.0,
-          volume: 1.0
-        },
-        language: 'en-US',
-        is_default: true
-      });
+    const { error: voiceError } = await supabase.from('voice_profiles').upsert({
+      user_id: userId,
+      preferred_voice: 'en-US-AriaNeural',
+      speech_rate: 1.0,
+      pitch: 0,
+      volume: 1.0,
+      language_preferences: ['en', 'es'],
+      metadata: { accessibility_enabled: true }
+    }, { onConflict: 'user_id' });
 
     if (voiceError) {
       console.error('   ❌ Error creating voice profile:', voiceError.message);
