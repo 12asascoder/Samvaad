@@ -255,6 +255,100 @@ I hope you understand, and I appreciate your consideration.
       'Offer alternatives only if you genuinely want to',
       'It\'s okay to say no'
     ]
+  },
+
+  service_booking: {
+    id: 'service_booking',
+    title: 'Service Booking',
+    category: 'services',
+    description: 'Help booking essential services',
+    templateContent: `Hello,
+
+I would like to book {{service_type}} for {{date_time}}.
+
+{{special_requirements}}
+
+Please confirm availability and any preparation needed on my part.
+
+Thank you,
+{{sender_name}}
+{{contact_info}}`,
+    variables: ['service_type', 'date_time', 'special_requirements', 'sender_name', 'contact_info'],
+    culturalContext: 'neutral',
+    formalityLevel: 'casual',
+    tips: [
+      'Be specific about date and time preferences',
+      'Mention any special requirements upfront',
+      'Provide contact information',
+      'Ask about preparation needed'
+    ]
+  },
+
+  file_complaint: {
+    id: 'file_complaint',
+    title: 'File Complaint',
+    category: 'customer_service',
+    description: 'Formal complaint filing with service provider',
+    templateContent: `Dear {{recipient}},
+
+I am writing to formally file a complaint regarding {{issue_description}} that occurred on {{date}}.
+
+{{details}}
+
+This issue has {{impact_description}} and I believe it warrants {{resolution_request}}.
+
+I have been a {{customer_type}} for {{duration}} and have {{previous_experience}}.
+
+I would appreciate a response within {{response_timeframe}} and resolution by {{resolution_deadline}}.
+
+Thank you for your attention to this matter.
+
+Sincerely,
+{{sender_name}}
+{{contact_info}}
+Reference: {{reference_number}}`,
+    variables: ['recipient', 'issue_description', 'date', 'details', 'impact_description', 'resolution_request', 'customer_type', 'duration', 'previous_experience', 'response_timeframe', 'resolution_deadline', 'sender_name', 'contact_info', 'reference_number'],
+    culturalContext: 'assertive_professional',
+    formalityLevel: 'professional',
+    tips: [
+      'Be specific about the issue and dates',
+      'Clearly state what resolution you expect',
+      'Set reasonable deadlines',
+      'Keep records of all communications'
+    ]
+  },
+
+  schedule_appointment: {
+    id: 'schedule_appointment',
+    title: 'Schedule Appointment',
+    category: 'services',
+    description: 'Request to schedule an appointment',
+    templateContent: `Hello,
+
+I would like to schedule an appointment for {{service_type}}.
+
+My preferred dates and times are:
+{{preferred_dates_times}}
+
+If those times are not available, I am also flexible with:
+{{alternative_times}}
+
+{{special_considerations}}
+
+Please confirm the appointment and let me know if any preparation is needed on my part.
+
+Thank you,
+{{sender_name}}
+{{contact_info}}`,
+    variables: ['service_type', 'preferred_dates_times', 'alternative_times', 'special_considerations', 'sender_name', 'contact_info'],
+    culturalContext: 'neutral',
+    formalityLevel: 'professional',
+    tips: [
+      'Provide multiple time options',
+      'Mention any special needs or considerations',
+      'Include contact information',
+      'Ask about preparation requirements'
+    ]
   }
 };
 
@@ -289,7 +383,10 @@ export function suggestTemplates(userInput: string): AdvocacyTemplate[] {
     accommodation_request: ['accommodation', 'disability', 'accessibility', 'wheelchair', 'hearing', 'visual'],
     landlord_issue: ['landlord', 'rent', 'apartment', 'repair', 'maintenance', 'lease'],
     school_communication: ['teacher', 'school', 'student', 'class', 'grade', 'homework'],
-    social_boundary: ['decline', 'no', 'boundary', 'invitation', 'uncomfortable', 'cancel']
+    social_boundary: ['decline', 'no', 'boundary', 'invitation', 'uncomfortable', 'cancel'],
+    service_booking: ['book', 'booking', 'schedule', 'service', 'appointment', 'reservation'],
+    file_complaint: ['file', 'complaint', 'formal', 'report', 'grievance', 'dispute'],
+    schedule_appointment: ['schedule', 'appointment', 'book', 'meeting', 'reservation', 'time']
   };
   
   for (const [templateId, templateKeywords] of Object.entries(keywords)) {

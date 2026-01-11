@@ -105,6 +105,30 @@ const TEMPLATES: AdvocacyTemplate[] = [
     description: 'Politely decline or set boundaries in social situations',
     variables: ['recipient_name', 'invitation_or_request', 'acknowledgment', 'reason_or_boundary', 'alternative_if_any', 'closing', 'sender_name'],
     tips: ['You don\'t owe explanations', 'Be kind but firm', 'It\'s okay to say no']
+  },
+  {
+    id: 'service_booking',
+    title: 'Service Booking',
+    category: 'services',
+    description: 'Help booking essential services',
+    variables: ['service_type', 'date_time', 'special_requirements', 'sender_name', 'contact_info'],
+    tips: ['Be specific about date and time', 'Mention special requirements', 'Provide contact information']
+  },
+  {
+    id: 'file_complaint',
+    title: 'File Complaint',
+    category: 'customer_service',
+    description: 'Formal complaint filing with service provider',
+    variables: ['recipient', 'issue_description', 'date', 'details', 'impact_description', 'resolution_request', 'customer_type', 'duration', 'previous_experience', 'response_timeframe', 'resolution_deadline', 'sender_name', 'contact_info', 'reference_number'],
+    tips: ['Be specific about the issue', 'State expected resolution', 'Set reasonable deadlines', 'Keep records']
+  },
+  {
+    id: 'schedule_appointment',
+    title: 'Schedule Appointment',
+    category: 'services',
+    description: 'Request to schedule an appointment',
+    variables: ['service_type', 'preferred_dates_times', 'alternative_times', 'special_considerations', 'sender_name', 'contact_info'],
+    tips: ['Provide multiple time options', 'Mention special needs', 'Include contact information']
   }
 ];
 

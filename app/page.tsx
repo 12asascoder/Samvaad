@@ -86,6 +86,30 @@ export default function Home() {
               </div>
             </div>
           </div>
+          
+          {/* Statistics Dashboard */}
+          <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto">
+            <StatCard 
+              value="94%"
+              label="Comprehension Improvement"
+              icon={<Brain className="w-6 h-6" />}
+            />
+            <StatCard 
+              value="50+"
+              label="Languages Supported"
+              icon={<Globe className="w-6 h-6" />}
+            />
+            <StatCard 
+              value="24/7"
+              label="AI Availability"
+              icon={<Zap className="w-6 h-6" />}
+            />
+            <StatCard 
+              value="100%"
+              label="Privacy Protected"
+              icon={<Shield className="w-6 h-6" />}
+            />
+          </div>
         </div>
       </section>
 
