@@ -85,7 +85,9 @@ export class AzureSpeechToTextService {
 
         source.connect(processor);
         if (this.recognitionContext?.destination) {
+          if (this.recognitionContext?.destination) {
           processor.connect(this.recognitionContext.destination);
+        }
         }
       };
 
