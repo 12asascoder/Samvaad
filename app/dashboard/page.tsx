@@ -186,8 +186,9 @@ export default function Dashboard() {
 }
 
 function NavItem({ icon, label, active = false, onClick }: { icon: React.ReactNode, label: string, active?: boolean, onClick?: () => void }) {
+  const Component = onClick ? 'button' : 'div';
   return (
-    <button 
+    <Component 
       onClick={onClick}
       className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
         active 
@@ -197,7 +198,7 @@ function NavItem({ icon, label, active = false, onClick }: { icon: React.ReactNo
     >
       {icon}
       {label}
-    </button>
+    </Component>
   );
 }
 
