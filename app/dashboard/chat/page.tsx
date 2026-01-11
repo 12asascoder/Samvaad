@@ -40,6 +40,18 @@ interface AccessibilitySettings {
   speechToText: boolean;
   reducedMotion: boolean;
   fontSize: 'small' | 'medium' | 'large' | 'extra-large';
+  fontStyle: 'default' | 'opendyslexic' | 'monospace' | 'serif';
+  lineSpacing: 'compact' | 'normal' | 'relaxed' | 'loose';
+  speechRate: number;
+  voiceType: 'neutral' | 'warm' | 'confident' | 'gentle';
+  audioVolume: number;
+  screenReader: boolean;
+  largeText: boolean;
+  colorBlindMode: boolean;
+  liveCaptions: boolean;
+  visualAlerts: boolean;
+  simplifiedLanguage: boolean;
+  focusMode: boolean;
 }
 
 const DEFAULT_ACCESSIBILITY: AccessibilitySettings = {
@@ -47,7 +59,19 @@ const DEFAULT_ACCESSIBILITY: AccessibilitySettings = {
   textToSpeech: false,
   speechToText: false,
   reducedMotion: false,
-  fontSize: 'medium'
+  fontSize: 'medium',
+  fontStyle: 'default',
+  lineSpacing: 'normal',
+  speechRate: 1.0,
+  voiceType: 'neutral',
+  audioVolume: 1.0,
+  screenReader: false,
+  largeText: false,
+  colorBlindMode: false,
+  liveCaptions: false,
+  visualAlerts: false,
+  simplifiedLanguage: false,
+  focusMode: false
 };
 
 export default function ChatInterface() {

@@ -10,7 +10,18 @@ import {
   Zap,
   X,
   Moon,
-  Sun
+  Sun,
+  Headphones,
+  Text,
+  AlignLeft,
+  Volume1,
+  User,
+  Monitor,
+  Palette,
+  Captions,
+  Bell,
+  Languages,
+  Focus
 } from 'lucide-react';
 
 interface AccessibilitySettings {
@@ -19,6 +30,18 @@ interface AccessibilitySettings {
   speechToText: boolean;
   reducedMotion: boolean;
   fontSize: 'small' | 'medium' | 'large' | 'extra-large';
+  fontStyle: 'default' | 'opendyslexic' | 'monospace' | 'serif';
+  lineSpacing: 'compact' | 'normal' | 'relaxed' | 'loose';
+  speechRate: number;
+  voiceType: 'neutral' | 'warm' | 'confident' | 'gentle';
+  audioVolume: number;
+  screenReader: boolean;
+  largeText: boolean;
+  colorBlindMode: boolean;
+  liveCaptions: boolean;
+  visualAlerts: boolean;
+  simplifiedLanguage: boolean;
+  focusMode: boolean;
 }
 
 interface AccessibilityPanelProps {
