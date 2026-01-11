@@ -86,32 +86,36 @@ export default function Home() {
               </div>
             </div>
           </div>
-          
-          {/* Statistics Dashboard */}
-          <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto">
-            <StatCard 
-              value="94%"
-              label="Comprehension Improvement"
-              icon={<Brain className="w-6 h-6" />}
-            />
-            <StatCard 
-              value="50+"
-              label="Languages Supported"
-              icon={<Globe className="w-6 h-6" />}
-            />
-            <StatCard 
-              value="24/7"
-              label="AI Availability"
-              icon={<Zap className="w-6 h-6" />}
-            />
-            <StatCard 
-              value="100%"
-              label="Privacy Protected"
-              icon={<Shield className="w-6 h-6" />}
-            />
-          </div>
         </div>
       </section>
+
+      {/* Statistics Dashboard Section */}
+      <section className="py-16 px-6 bg-[#030712] relative">
+        <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4">
+          <StatCard 
+            value="94%"
+            label="Comprehension Improvement"
+            icon={<Brain className="w-6 h-6" />}
+          />
+          <StatCard 
+            value="50+"
+            label="Languages Supported"
+            icon={<Globe className="w-6 h-6" />}
+          />
+          <StatCard 
+            value="24/7"
+            label="AI Availability"
+            icon={<Zap className="w-6 h-6" />}
+          />
+          <StatCard 
+            value="100%"
+            label="Privacy Protected"
+            icon={<Shield className="w-6 h-6" />}
+          />
+        </div>
+      </section>
+
+      {/* Features Section */}
 
       {/* Features Section */}
       <section id="features" className="py-24 bg-[#030712] relative overflow-hidden">
@@ -220,6 +224,20 @@ function FeatureCard({ icon, title, description }: { icon: React.ReactNode, titl
       </div>
       <h3 className="text-xl font-bold text-white mb-3">{title}</h3>
       <p className="text-slate-400 leading-relaxed">{description}</p>
+    </div>
+  );
+}
+
+function StatCard({ value, label, icon }: { value: string, label: string, icon: React.ReactNode }) {
+  return (
+    <div className="bg-slate-900/40 backdrop-blur-sm border border-slate-800/50 rounded-2xl p-6 hover:border-indigo-500/30 hover:shadow-lg hover:shadow-indigo-500/10 transition-all group">
+      <div className="flex items-center justify-center w-12 h-12 bg-indigo-500/10 rounded-xl mb-4 group-hover:bg-indigo-500/20 transition-colors">
+        <div className="text-indigo-400">
+          {icon}
+        </div>
+      </div>
+      <div className="text-3xl font-bold text-white mb-2">{value}</div>
+      <div className="text-sm text-slate-400">{label}</div>
     </div>
   );
 }
