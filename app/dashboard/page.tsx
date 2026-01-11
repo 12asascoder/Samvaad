@@ -45,16 +45,15 @@ export default function Dashboard() {
           <Link href="/dashboard/profile">
             <NavItem icon={<Settings className="w-5 h-5" />} label="Settings" />
           </Link>
-          <button 
+          <NavItem 
+            icon={<LogOut className="w-5 h-5" />} 
+            label="Logout"
             onClick={async () => {
               const supabase = createClient();
               await supabase.auth.signOut();
               window.location.href = '/';
             }}
-            className="w-full"
-          >
-            <NavItem icon={<LogOut className="w-5 h-5" />} label="Logout" />
-          </button>
+          />
         </div>
       </aside>
 

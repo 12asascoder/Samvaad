@@ -319,7 +319,7 @@ async function seedDemoAccount() {
         category: 'Technical',
         description: 'Learn core ML concepts, algorithms, and practical applications',
         target_date: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
-        progress_percentage: 65,
+        progress: 65,
         milestones: [
           { title: 'Complete Linear Regression', completed: true },
           { title: 'Learn Neural Networks', completed: true },
@@ -333,7 +333,7 @@ async function seedDemoAccount() {
         category: 'Communication',
         description: 'Build confidence and clarity in public presentations',
         target_date: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(),
-        progress_percentage: 45,
+        progress: 45,
         milestones: [
           { title: 'Complete Speech Writing Course', completed: true },
           { title: 'Practice with Small Groups', completed: false },
@@ -346,7 +346,7 @@ async function seedDemoAccount() {
         category: 'Language',
         description: 'Achieve conversational fluency in Spanish',
         target_date: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString(),
-        progress_percentage: 80,
+        progress: 80,
         milestones: [
           { title: 'Complete Beginner Course', completed: true },
           { title: 'Master Verb Conjugations', completed: true },
@@ -360,7 +360,7 @@ async function seedDemoAccount() {
         category: 'Professional',
         description: 'Understand personal finance, investing, and wealth building',
         target_date: new Date(Date.now() + 120 * 24 * 60 * 60 * 1000).toISOString(),
-        progress_percentage: 90,
+        progress: 90,
         milestones: [
           { title: 'Learn Budgeting Basics', completed: true },
           { title: 'Understand Investment Options', completed: true },
@@ -374,7 +374,7 @@ async function seedDemoAccount() {
         category: 'Communication',
         description: 'Master negotiation and conflict resolution skills',
         target_date: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000).toISOString(),
-        progress_percentage: 75,
+        progress: 75,
         milestones: [
           { title: 'Learn Active Listening', completed: true },
           { title: 'Practice Mediation Techniques', completed: true },
@@ -397,7 +397,7 @@ async function seedDemoAccount() {
         user_id: userId,
         topic: 'Introduction to Neural Networks',
         duration_minutes: 45,
-        comprehension_score: 88,
+        comprehension_level: 88,
         learning_mode: 'interactive',
         notes: 'Excellent grasp of basic concepts. Visual learning style very effective.',
         metadata: { difficulty: 'intermediate', resources_used: ['video', 'interactive_demo'] }
@@ -406,46 +406,41 @@ async function seedDemoAccount() {
         user_id: userId,
         topic: 'Spanish Verb Conjugations',
         duration_minutes: 30,
-        comprehension_score: 75,
-        learning_mode: 'practice',
-        notes: 'Struggling with irregular verbs. Needs more repetition.',
-        metadata: { difficulty: 'beginner', resources_used: ['flashcards', 'audio'] }
+        comprehension_level: 75,
+        learning_style_used: 'Auditory',
+        session_notes: 'Struggling with irregular verbs. Needs more repetition.'
       },
       {
         user_id: userId,
         topic: 'Investment Portfolio Diversification',
         duration_minutes: 60,
-        comprehension_score: 92,
-        learning_mode: 'interactive',
-        notes: 'Strong understanding of risk management principles.',
-        metadata: { difficulty: 'advanced', resources_used: ['case_studies', 'calculator'] }
+        comprehension_level: 92,
+        learning_style_used: 'Reading/Writing',
+        session_notes: 'Strong understanding of risk management principles.'
       },
       {
         user_id: userId,
         topic: 'Public Speaking: Body Language',
         duration_minutes: 25,
-        comprehension_score: 70,
-        learning_mode: 'practice',
-        notes: 'Needs more practice with gestures and eye contact.',
-        metadata: { difficulty: 'beginner', resources_used: ['video', 'mirror_practice'] }
+        comprehension_level: 70,
+        learning_style_used: 'Kinesthetic',
+        session_notes: 'Needs more practice with gestures and eye contact.'
       },
       {
         user_id: userId,
         topic: 'Conflict Resolution: Active Listening',
         duration_minutes: 40,
-        comprehension_score: 85,
-        learning_mode: 'interactive',
-        notes: 'Good progress on empathy and understanding perspectives.',
-        metadata: { difficulty: 'intermediate', resources_used: ['role_play', 'scenarios'] }
+        comprehension_level: 85,
+        learning_style_used: 'Auditory',
+        session_notes: 'Good progress on empathy and understanding perspectives.'
       },
       {
         user_id: userId,
         topic: 'Machine Learning: Gradient Descent',
         duration_minutes: 50,
-        comprehension_score: 90,
-        learning_mode: 'interactive',
-        notes: 'Excellent visualization helped understand the concept quickly.',
-        metadata: { difficulty: 'advanced', resources_used: ['interactive_demo', 'visualizations'] }
+        comprehension_level: 90,
+        learning_style_used: 'Visual',
+        session_notes: 'Excellent visualization helped understand the concept quickly.'
       }
     ];
 
@@ -464,7 +459,7 @@ async function seedDemoAccount() {
       .from('conversations')
       .insert({
         user_id: userId,
-        conversation_type: 'learning',
+        mode: 'learning',
         title: 'Understanding Neural Networks',
         metadata: { topic: 'machine_learning', difficulty: 'intermediate' }
       })
@@ -514,7 +509,7 @@ async function seedDemoAccount() {
       .from('conversations')
       .insert({
         user_id: userId,
-        conversation_type: 'advocacy',
+        mode: 'advocacy',
         title: 'Salary Negotiation Email',
         metadata: { template: 'salary_negotiation', outcome: 'pending' }
       })
@@ -556,8 +551,7 @@ async function seedDemoAccount() {
         template_used: 'salary_negotiation',
         message_content: 'Professional salary negotiation email sent to manager',
         outcome: 'pending',
-        cultural_context: 'professional',
-        metadata: { recipient: 'manager', urgency: 'medium' }
+        context: { cultural_context: 'professional', recipient: 'manager', urgency: 'medium' }
       },
       {
         user_id: userId,
@@ -565,8 +559,7 @@ async function seedDemoAccount() {
         template_used: 'service_booking',
         message_content: 'Requested appointment for medical consultation',
         outcome: 'confirmed',
-        cultural_context: 'neutral',
-        metadata: { service_type: 'medical', date_requested: new Date().toISOString() }
+        context: { cultural_context: 'neutral', service_type: 'medical', date_requested: new Date().toISOString() }
       }
     ];
 
@@ -591,7 +584,7 @@ async function seedDemoAccount() {
       },
       {
         user_id: userId,
-        insight_type: 'achievement',
+        insight_type: 'learning',
         title: 'Visual Learning Efficiency Increased',
         description: 'Your visual learning efficiency has increased by 15% in technical subjects. Keep using visual aids and diagrams!',
         priority: 'low',
@@ -620,12 +613,10 @@ async function seedDemoAccount() {
     console.log('\n9️⃣  Creating voice profile...');
     const { error: voiceError } = await supabase.from('voice_profiles').upsert({
       user_id: userId,
-      preferred_voice: 'en-US-AriaNeural',
-      speech_rate: 1.0,
-      pitch: 0,
-      volume: 1.0,
-      language_preferences: ['en', 'es'],
-      metadata: { accessibility_enabled: true }
+      voice_name: 'en-US-AriaNeural',
+      voice_settings: { pitch: 1.0, rate: 1.0, volume: 1.0 },
+      language: 'en-US',
+      is_default: true
     }, { onConflict: 'user_id' });
 
     if (voiceError) {
