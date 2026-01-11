@@ -547,18 +547,26 @@ async function seedDemoAccount() {
       {
         user_id: userId,
         scenario_type: 'salary_negotiation',
-        template_used: 'salary_negotiation',
-        message_content: 'Professional salary negotiation email sent to manager',
-        outcome: 'pending',
-        context: { cultural_context: 'professional', recipient: 'manager', urgency: 'medium' }
+        context: { 
+          template_used: 'salary_negotiation',
+          cultural_context: 'professional', 
+          recipient: 'manager', 
+          urgency: 'medium' 
+        },
+        generated_message: 'Professional salary negotiation email sent to manager',
+        outcome: 'pending'
       },
       {
         user_id: userId,
         scenario_type: 'service_booking',
-        template_used: 'service_booking',
-        message_content: 'Requested appointment for medical consultation',
-        outcome: 'confirmed',
-        context: { cultural_context: 'neutral', service_type: 'medical', date_requested: new Date().toISOString() }
+        context: { 
+          template_used: 'service_booking',
+          cultural_context: 'neutral', 
+          service_type: 'medical', 
+          date_requested: new Date().toISOString() 
+        },
+        generated_message: 'Requested appointment for medical consultation',
+        outcome: 'confirmed'
       }
     ];
 
@@ -610,18 +618,39 @@ async function seedDemoAccount() {
 
     // Step 9: Create voice profile
     console.log('\n9️⃣  Creating voice profile...');
-    const { error: voiceError } = await supabase.from('voice_profiles').upsert({
+    // Check if voice profile exists
+    const { data: existingVoiceProfile } = await supabase
+      .from('voice_profiles')
+      .select('id')
+      .eq('user_id', userId)
+      .single();
+    
+    const voiceProfileData = {
       user_id: userId,
       voice_name: 'en-US-AriaNeural',
       voice_settings: { pitch: 1.0, rate: 1.0, volume: 1.0 },
       language: 'en-US',
       is_default: true
-    }, { onConflict: 'user_id' });
+    };
+
+    let voiceError;
+    if (existingVoiceProfile) {
+      const { error } = await supabase
+        .from('voice_profiles')
+        .update(voiceProfileData)
+        .eq('user_id', userId);
+      voiceError = error;
+    } else {
+      const { error } = await supabase
+        .from('voice_profiles')
+        .insert(voiceProfileData);
+      voiceError = error;
+    }
 
     if (voiceError) {
       console.error('   ❌ Error creating voice profile:', voiceError.message);
     } else {
-      console.log('   ✅ Voice profile created');
+      console.log('   ✅ Voice profile created/updated');
     }
 
     console.log('\n✨ Comprehensive seed process completed!\n');

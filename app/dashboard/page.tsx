@@ -33,9 +33,15 @@ export default function Dashboard() {
         </div>
 
         <nav className="flex-1 px-4 space-y-1">
-          <NavItem icon={<TrendingUp className="w-5 h-5" />} label="Overview" active={activeTab === 'overview'} onClick={() => setActiveTab('overview')} />
-          <NavItem icon={<Brain className="w-5 h-5" />} label="Cognitive Twin" active={activeTab === 'twin'} onClick={() => setActiveTab('twin')} />
-          <NavItem icon={<BookOpen className="w-5 h-5" />} label="Learning Path" active={activeTab === 'learning'} onClick={() => setActiveTab('learning')} />
+          <Link href="/dashboard">
+            <NavItem icon={<TrendingUp className="w-5 h-5" />} label="Overview" active={activeTab === 'overview'} />
+          </Link>
+          <Link href="/dashboard">
+            <NavItem icon={<Brain className="w-5 h-5" />} label="Cognitive Twin" active={activeTab === 'twin'} />
+          </Link>
+          <Link href="/dashboard/learning">
+            <NavItem icon={<BookOpen className="w-5 h-5" />} label="Learning Path" active={activeTab === 'learning'} />
+          </Link>
           <Link href="/dashboard/chat">
             <NavItem icon={<MessageSquare className="w-5 h-5" />} label="Advocacy Chat" active={activeTab === 'advocacy'} />
           </Link>
