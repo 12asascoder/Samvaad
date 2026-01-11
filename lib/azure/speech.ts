@@ -84,7 +84,9 @@ export class AzureSpeechToTextService {
         };
 
         source.connect(processor);
-        processor.connect(this.recognitionContext.destination);
+        if (this.recognitionContext?.destination) {
+          processor.connect(this.recognitionContext.destination);
+        }
       };
 
       ws.onmessage = (event) => {
