@@ -44,3 +44,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# media files (large files)
+*.mov
+*.mp4
+*.avi
+*.mkv
+*.pptx
+Screenshot*.png

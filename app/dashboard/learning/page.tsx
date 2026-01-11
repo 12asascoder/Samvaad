@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
+
 import { 
   Brain, 
   TrendingUp, 
@@ -54,13 +55,12 @@ export default function LearningDashboard() {
   const [showAddGoal, setShowAddGoal] = useState(false);
   const [newGoal, setNewGoal] = useState({ title: '', description: '', category: 'general' });
 
-  const supabase = createClient();
-
   useEffect(() => {
     fetchData();
   }, []);
 
   const fetchData = async () => {
+    const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
@@ -109,6 +109,7 @@ export default function LearningDashboard() {
   const addGoal = async () => {
     if (!newGoal.title.trim()) return;
 
+    const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
@@ -132,6 +133,7 @@ export default function LearningDashboard() {
   };
 
   const updateGoalProgress = async (goalId: string, progress: number) => {
+    const supabase = createClient();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await (supabase as any)
       .from('learning_goals')

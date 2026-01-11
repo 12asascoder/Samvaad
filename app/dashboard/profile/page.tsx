@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
+
 import { User, Brain, MessageSquare, Save, Loader2, ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import type { Database } from '@/database.types';
@@ -17,10 +18,9 @@ export default function ProfilePage() {
     communication_preference: 'Professional',
   });
 
-  const supabase = createClient();
-
   useEffect(() => {
     async function getProfile() {
+      const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         const { data } = await supabase
@@ -45,6 +45,7 @@ export default function ProfilePage() {
 
   const handleUpdate = async () => {
     setSaving(true);
+    const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
