@@ -19,7 +19,7 @@ This guide explains how to seed a comprehensive demo account with all features a
    ```
 
 3. **Log in with demo credentials**
-   - Email: `demo@samvaad.ai`
+   - Email: `demo@example.com`
    - Password: `Demo@Samvaad2024!`
 
 ## What Gets Seeded
