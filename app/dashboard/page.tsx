@@ -4,8 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
-import { TwinGreeting } from "@/components/ui/TwinGreeting";
-import { InsightCard } from "@/components/ui/InsightCard";
+import { Command } from 'lucide-react';
 
 interface NeuralInsight {
   id: string;
@@ -54,7 +53,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="w-full h-full min-h-screen px-6 py-12 md:px-16 md:py-20 max-w-[1600px] mx-auto">
+    <div className="w-full h-full min-h-screen px-8 py-8 md:px-16 md:py-10 max-w-[1600px] mx-auto flex flex-col">
       {/* Top Bar */}
       <motion.header 
         initial={{ opacity: 0 }}
@@ -62,70 +61,104 @@ export default function Dashboard() {
         transition={{ duration: 1 }}
         className="flex items-center justify-between mb-24"
       >
-        <h2 className="text-xl font-serif text-ink-900 tracking-wide">Samvaad</h2>
-        <div className="flex items-center gap-4 text-ink-600 text-sm tracking-wide">
-          <span>Press <kbd className="font-mono bg-white/5 border border-white/10 px-1.5 py-0.5 rounded">⌘K</kbd> to search</span>
-        </div>
-      </motion.header>
-
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-8 xl:gap-24">
-        
-        {/* Left Column: Greeting & Insights */}
-        <div className="lg:col-span-5 flex flex-col justify-start">
-          <TwinGreeting name={userName} subtext="What would you like to do today?" />
-          
-          <div className="mt-8 space-y-8">
-            <motion.h3 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
-              className="text-xs font-sans tracking-[0.2em] text-ink-600 uppercase mb-6"
-            >
-              Your Cognitive Twin Noticed
-            </motion.h3>
-            
-            <div className="space-y-10">
-              {insights.map((insight, idx) => (
-                <InsightCard key={insight.id} text={insight.description} delay={0.5 + (idx * 0.1)} />
-              ))}
+        <h2 className="text-2xl font-serif text-white tracking-wide">Samvaad</h2>
+        <div className="flex items-center gap-4">
+          <span className="text-[#666666] text-xs font-sans tracking-wide flex items-center gap-1.5">
+            Press <span className="font-mono flex items-center gap-0.5 text-[#888888]"><Command className="w-3 h-3"/>K</span> to search
+          </span>
+          <div className="w-8 h-8 rounded-lg bg-[#111111] border border-white/[0.05] flex items-center justify-center">
+            {/* Simple icon placeholder */}
+            <div className="w-4 h-3 border border-[#666666] rounded-sm flex flex-col justify-center px-0.5 space-y-0.5">
+              <div className="w-full h-[1px] bg-[#666666]" />
+              <div className="w-2/3 h-[1px] bg-[#666666]" />
             </div>
           </div>
         </div>
+      </motion.header>
 
-        {/* Right Column: Feature Masonry Grid */}
-        <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-6 items-start">
+      {/* Greeting Section */}
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, delay: 0.1 }}
+        className="mb-20"
+      >
+        <h1 className="text-[52px] md:text-[64px] font-serif tracking-tight leading-none mb-4 text-[#F5F5F5]">
+          Good Evening, {userName}
+        </h1>
+        <div className="flex items-center text-[#888888] text-lg font-sans">
+          <span>What would you like to do today?</span>
+          <motion.span 
+            animate={{ opacity: [1, 0] }} 
+            transition={{ repeat: Infinity, duration: 0.8, ease: "linear" }}
+            className="w-2.5 h-5 bg-[#888888] ml-2 inline-block"
+          />
+        </div>
+      </motion.div>
+
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-24 flex-1">
+        
+        {/* Left Column: Insights */}
+        <div className="lg:col-span-4 flex flex-col justify-start">
+          <motion.h3 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="text-[10px] font-sans tracking-[0.15em] font-bold text-[#666666] uppercase mb-8"
+          >
+            YOUR COGNITIVE TWIN NOTICED
+          </motion.h3>
           
-          <div className="space-y-6">
-            <FeatureTile 
-              title="Learn" 
-              desc="Expand your theoretical horizon." 
-              href="/dashboard/learning" 
-              delay={0.6} 
-            />
-            <FeatureTile 
-              title="Prepare" 
-              desc="Simulation for upcoming challenges." 
-              href="/dashboard/prepare" 
-              delay={0.8} 
-            />
+          <div className="space-y-8">
+            {insights.map((insight, idx) => (
+              <motion.div 
+                key={insight.id}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8, delay: 0.5 + (idx * 0.1) }}
+                className="border-l border-white/20 pl-5 py-1"
+              >
+                <p className="text-[15px] text-[#DDDDDD] leading-relaxed font-sans">
+                  "{insight.description.replace('examples', '')}
+                  {insight.description.includes('examples') && <span className="italic">examples</span>}."
+                </p>
+              </motion.div>
+            ))}
           </div>
+        </div>
+
+        {/* Right Column: Rigid 2x2 Feature Grid */}
+        <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-5 items-start">
           
-          <div className="space-y-6 sm:mt-12">
-            <FeatureTile 
-              title="Express" 
-              desc="Voice your thoughts and ideas." 
-              href="/dashboard/chat" 
-              delay={0.7} 
-              isHighlighted={true}
-            />
-            <FeatureTile 
-              title="Reflect" 
-              desc="Quiet space for internal auditing." 
-              href="/dashboard/profile" 
-              delay={0.9} 
-            />
-          </div>
+          <FeatureTile 
+            title="Learn" 
+            desc="Expand your theoretical horizon." 
+            href="/dashboard/learning" 
+            delay={0.6} 
+          />
+          
+          <FeatureTile 
+            title="Express" 
+            desc="Voice your thoughts and ideas." 
+            href="/dashboard/chat" 
+            delay={0.7} 
+            hasStitch={true}
+          />
+          
+          <FeatureTile 
+            title="Prepare" 
+            desc="Simulation for upcoming challenges." 
+            href="/dashboard/prepare" 
+            delay={0.8} 
+          />
+          
+          <FeatureTile 
+            title="Reflect" 
+            desc="Quiet space for internal auditing." 
+            href="/dashboard/profile" 
+            delay={0.9} 
+          />
 
         </div>
       </div>
@@ -133,36 +166,35 @@ export default function Dashboard() {
   );
 }
 
-function FeatureTile({ title, desc, href, delay, isHighlighted = false }: { title: string, desc: string, href: string, delay: number, isHighlighted?: boolean }) {
+function FeatureTile({ title, desc, href, delay, hasStitch = false }: { title: string, desc: string, href: string, delay: number, hasStitch?: boolean }) {
   const router = useRouter();
   
   return (
     <motion.button
       onClick={() => router.push(href)}
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 1, delay, ease: [0.16, 1, 0.3, 1] }}
-      whileHover={{ y: -4, transition: { duration: 0.4, ease: "easeOut" } }}
-      whileTap={{ scale: 0.98 }}
-      className={`w-full relative flex flex-col justify-end text-left p-10 rounded-[32px] h-[360px] md:h-[420px] overflow-hidden group border border-white/[0.03] shadow-[0_20px_40px_-10px_rgba(0,0,0,0.5)] transition-colors duration-700 ${
-        isHighlighted ? 'bg-space-700/60 hover:bg-space-700/80' : 'bg-space-800/40 hover:bg-space-800/60'
-      } backdrop-blur-3xl`}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 1, delay, ease: "easeOut" }}
+      className={`w-full relative flex flex-col justify-end text-left p-10 h-[380px] group overflow-hidden bg-[#111111] hover:bg-[#151515] transition-colors duration-500`}
     >
-      {/* Decorative blurred blob inside the tile */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-white opacity-0 group-hover:opacity-[0.02] blur-[50px] transition-opacity duration-700 rounded-full pointer-events-none" />
-      
-      {isHighlighted && (
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-white/[0.05] via-transparent to-transparent pointer-events-none" />
+      {/* Optional Glow for Express card */}
+      {hasStitch && (
+        <>
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(255,255,255,0.03)_0%,_transparent_70%)]" />
+          {/* Subtle particle simulation effect using simple CSS */}
+          <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/5 blur-3xl rounded-full opacity-50" />
+          <div className="absolute top-20 right-20 w-20 h-20 bg-white/5 blur-2xl rounded-full opacity-30" />
+        </>
       )}
 
       <div className="relative z-10">
-        <h2 className="text-3xl font-serif text-ink-900 mb-3 tracking-wide">{title}</h2>
-        <p className="text-ink-600 font-sans text-sm tracking-wide leading-relaxed">{desc}</p>
+        <h2 className="text-[32px] font-serif text-[#F5F5F5] mb-2">{title}</h2>
+        <p className="text-[#888888] font-sans text-sm tracking-wide">{desc}</p>
       </div>
 
-      {isHighlighted && (
-        <div className="absolute top-8 right-8 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-white/5 border border-white/10 px-4 py-2 rounded-full backdrop-blur-md">
-          <span className="text-xs font-sans text-ink-900 tracking-wide">Enter Space</span>
+      {hasStitch && (
+        <div className="absolute bottom-10 right-8 bg-[#1A1A1A] border border-[#333333] px-5 py-2.5 rounded-sm shadow-2xl z-20 hover:bg-[#222222] transition-colors">
+          <span className="text-[15px] font-sans text-[#E5E5E5]">Stitch - Design with AI</span>
         </div>
       )}
     </motion.button>

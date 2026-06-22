@@ -1,7 +1,7 @@
 'use client';
 
-import { ConversationStudio } from '@/components/ui/ConversationStudio';
+import { ExpressStudio } from '@/components/ui/ExpressStudio';
 
 export default function ChatPage() {
-  return <ConversationStudio />;
+  return <ExpressStudio />;
 }
