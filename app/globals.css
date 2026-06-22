@@ -2,13 +2,32 @@
 @tailwind components;
 @tailwind utilities;
 
-/* No global colors; components decide their own colors */
-body {
-  font-family: Arial, Helvetica, sans-serif;
-  background-color: #020617;
-  color: #f8fafc;
+@layer base {
+  :root {
+    --background: #050505;
+    --foreground: #F3F4F6;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* Hide scrollbar for a cleaner look */
+    scrollbar-width: none;
+  }
+  
+  body::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 @layer utilities {
-  .text-balance { text-wrap: balance; }
+  .text-balance {
+    text-wrap: balance;
+  }
+  .glass-panel {
+    @apply bg-space-800/40 backdrop-blur-3xl border border-white/[0.03] shadow-[0_20px_40px_-10px_rgba(0,0,0,0.5)];
+  }
 }

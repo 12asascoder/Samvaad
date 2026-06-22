@@ -1,26 +1,26 @@
 import type { Metadata } from "next";
-import localFont from "next/font/local";
+import { Inter, Newsreader } from "next/font/google";
 import "./globals.css";
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
 });
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-  weight: "100 900",
+
+const newsreader = Newsreader({
+  subsets: ["latin"],
+  variable: "--font-newsreader",
+  style: ['normal', 'italic'],
 });
 
 export const metadata: Metadata = {
-  title: "Samvaad - Your Cognitive Twin for Learning & Advocacy",
-  description: "Samvaad is a human-centered AI platform that creates a secure digital twin of your learning and communication style, helping you learn effectively and advocate confidently in any situation.",
-  keywords: ["AI", "cognitive twin", "learning", "advocacy", "accessibility", "communication", "education", "Azure AI"],
+  title: "Samvaad - The Cognitive Operating System",
+  description: "An immersive digital twin for personalized learning and expression.",
+  keywords: ["AI", "cognitive twin", "learning", "advocacy", "accessibility", "communication"],
   authors: [{ name: "Samvaad AI" }],
   openGraph: {
-    title: "Samvaad - Your Cognitive Twin",
-    description: "Learn in your unique way. Communicate with confidence. Samvaad amplifies your voice.",
+    title: "Samvaad - The Cognitive Operating System",
+    description: "An immersive digital twin for personalized learning and expression.",
     type: "website",
   },
 };
@@ -32,9 +32,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${inter.variable} ${newsreader.variable} font-sans antialiased bg-space-900 text-ink-900`}>
         {children}
       </body>
     </html>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import {
   Server,
@@ -89,7 +89,7 @@ export default function CostDashboard() {
     }
   };
 
-  const totalCost = stats.reduce((sum, s) => sum + s.cost, 0);
+  const totalCost = stats.reduce((sum: number, s: AIUsageStats) => sum + s.cost, 0);
 
   return (
     <div className="flex-1 overflow-y-auto p-8 relative min-h-screen bg-[#020617] text-slate-200">
