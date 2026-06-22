@@ -148,7 +148,7 @@ export async function POST(request: NextRequest) {
                 clarificationRequests: messages.filter(m => m.role === 'user' && 
                   (m.content.toLowerCase().includes('what do you mean') || 
                    m.content.toLowerCase().includes('can you explain') ||
-                   m.content.toLowerCase().includes('i don\\'t understand'))).length,
+                   m.content.toLowerCase().includes("i don't understand"))).length,
               },
             };
 

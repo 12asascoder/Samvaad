@@ -111,7 +111,7 @@ export default function MorningBriefPage() {
                 <div className="mt-4 flex items-center justify-between">
                   <div className="flex-1 mr-4">
                     <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-indigo-500 rounded-full transition-all duration-1000" style={{ width: \`\${goal.progress}%\` }} />
+                      <div className="h-full bg-indigo-500 rounded-full transition-all duration-1000" style={{ width: `${goal.progress}%` }} />
                     </div>
                   </div>
                   <span className="text-sm font-medium text-gray-700">{goal.progress}%</span>
