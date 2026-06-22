@@ -6,6 +6,7 @@ import {
   type CognitiveTwinProfile 
 } from '@/lib/ai/cognitive-twin';
 import { LearningAnalyticsEngine } from '@/lib/ai/learning-analytics';
+import { AIProvider } from '@/lib/ai';
 
 export const runtime = 'edge';
 
@@ -92,63 +93,67 @@ export async function POST(request: NextRequest) {
       ...messages
     ];
 
-    // Check for Azure OpenAI configuration
-    const azureEndpoint = process.env.AZURE_OPENAI_ENDPOINT;
-    const azureApiKey = process.env.AZURE_OPENAI_API_KEY;
-    const azureDeployment = process.env.AZURE_OPENAI_DEPLOYMENT || 'gpt-4';
-
-    if (azureEndpoint && azureApiKey) {
-      // Use Azure OpenAI
-      const response = await fetch(
-        `${azureEndpoint}/openai/deployments/${azureDeployment}/chat/completions?api-version=2024-02-15-preview`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'api-key': azureApiKey,
-          },
-          body: JSON.stringify({
-            messages: apiMessages,
-            temperature: 0.7,
-            max_tokens: 1000,
-            stream: false,
-          }),
-        }
+    try {
+      const { stream, provider } = await AIProvider.stream(
+        apiMessages.map(m => ({ role: m.role, content: m.content })),
+        { temperature: 0.7, maxTokens: 1000 }
       );
 
-      if (!response.ok) {
-        const error = await response.text();
-        console.error('Azure OpenAI error:', error);
-        return NextResponse.json({ error: 'AI service error' }, { status: 500 });
-      }
+      const [clientStream, analyticsStream] = stream.tee();
 
-      const data = await response.json();
-      const assistantMessage = data.choices[0]?.message?.content || 'I apologize, but I could not generate a response.';
-
-      // Track learning session data if in learning mode
-      if (mode === 'learning' && user) {
+      // Process analytics in the background
+      (async () => {
         try {
-          const analyticsEngine = new LearningAnalyticsEngine();
-          const sessionData = {
-            messages: messages,
-            duration: 0, // Would be calculated from session start
-            topic: context?.topic as string || 'General Learning',
-            difficulty: (context?.difficulty as 'beginner' | 'intermediate' | 'advanced') || 'intermediate',
-            mistakes: context?.mistakes as string[] || [],
-            corrections: context?.corrections as string[] || [],
-            engagementMetrics: {
-              responseTime: context?.responseTimes as number[] || [],
-              questionFrequency: messages.filter(m => m.role === 'user' && m.content.includes('?')).length,
-              clarificationRequests: messages.filter(m => m.role === 'user' && 
-                (m.content.toLowerCase().includes('what do you mean') || 
-                 m.content.toLowerCase().includes('can you explain') ||
-                 m.content.toLowerCase().includes('i don\'t understand'))).length,
-            },
-          };
+          const reader = analyticsStream.getReader();
+          const decoder = new TextDecoder();
+          let fullText = '';
+          let doneReading = false;
+          
+          while (!doneReading) {
+            const { done, value } = await reader.read();
+            if (done) {
+              doneReading = true;
+              break;
+            }
+            
+            const chunk = decoder.decode(value, { stream: true });
+            const lines = chunk.split('\n');
+            for (const line of lines) {
+              if (line.startsWith('data: ') && line.trim() !== 'data: [DONE]') {
+                try {
+                  const parsed = JSON.parse(line.slice(6));
+                  if (parsed.choices?.[0]?.delta?.content) {
+                    fullText += parsed.choices[0].delta.content;
+                  }
+                } catch (e) {
+                  // Ignore parsing errors for incomplete chunks
+                }
+              }
+            }
+          }
 
-          // Analyze session (in background, don't block response)
-          analyticsEngine.analyzeLearningSession(sessionData, cognitiveProfile).then(async (analysis) => {
-            // Update cognitive twin with insights
+          // Track learning session data if in learning mode
+          if (mode === 'learning' && user && fullText.trim().length > 0) {
+            const analyticsEngine = new LearningAnalyticsEngine();
+            const sessionData = {
+              messages: [...messages, { role: 'assistant' as const, content: fullText }],
+              duration: 0, // Would be calculated from session start
+              topic: context?.topic as string || 'General Learning',
+              difficulty: (context?.difficulty as 'beginner' | 'intermediate' | 'advanced') || 'intermediate',
+              mistakes: context?.mistakes as string[] || [],
+              corrections: context?.corrections as string[] || [],
+              engagementMetrics: {
+                responseTime: context?.responseTimes as number[] || [],
+                questionFrequency: messages.filter(m => m.role === 'user' && m.content.includes('?')).length,
+                clarificationRequests: messages.filter(m => m.role === 'user' && 
+                  (m.content.toLowerCase().includes('what do you mean') || 
+                   m.content.toLowerCase().includes('can you explain') ||
+                   m.content.toLowerCase().includes('i don\\'t understand'))).length,
+              },
+            };
+
+            const analysis = await analyticsEngine.analyzeLearningSession(sessionData, cognitiveProfile);
+            
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             await (supabase as any)
               .from('cognitive_twins')
@@ -158,7 +163,6 @@ export async function POST(request: NextRequest) {
               })
               .eq('user_id', user.id);
 
-            // Store insights if any
             if (analysis.insights.length > 0) {
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               await (supabase as any)
@@ -175,35 +179,40 @@ export async function POST(request: NextRequest) {
                   }))
                 );
             }
-          }).catch(err => console.error('Analytics error:', err));
+          }
         } catch (error) {
-          console.error('Learning analytics error:', error);
-          // Don't fail the request if analytics fails
+          console.error('Learning analytics background error:', error);
         }
-      }
+      })();
 
+      // Append metadata to headers to allow client to know mode and profile
+      const headers = new Headers({
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+        'X-Samvaad-Mode': mode,
+        'X-Samvaad-Learning-Style': cognitiveProfile.learningStyle,
+        'X-Samvaad-Comm-Pref': cognitiveProfile.communicationPreference,
+        'X-AI-Provider': provider,
+      });
+
+      return new Response(clientStream, { headers });
+    } catch (providerError) {
+      console.warn('AIProvider failed or unavailable, using fallback:', providerError);
+      
+      // Fallback: Generate a contextual response without external API
+      const fallbackResponse = generateFallbackResponse(messages, mode, cognitiveProfile);
+      
       return NextResponse.json({
-        message: assistantMessage,
+        message: fallbackResponse,
         mode,
         profile: {
           learningStyle: cognitiveProfile.learningStyle,
           communicationPreference: cognitiveProfile.communicationPreference,
-        }
+        },
+        note: 'Using fallback mode. No AI Provider was able to handle the request.'
       });
     }
-
-    // Fallback: Generate a contextual response without external API
-    const fallbackResponse = generateFallbackResponse(messages, mode, cognitiveProfile);
-    
-    return NextResponse.json({
-      message: fallbackResponse,
-      mode,
-      profile: {
-        learningStyle: cognitiveProfile.learningStyle,
-        communicationPreference: cognitiveProfile.communicationPreference,
-      },
-      note: 'Using fallback mode. Configure AZURE_OPENAI_ENDPOINT and AZURE_OPENAI_API_KEY for full AI capabilities.'
-    });
 
   } catch (error) {
     console.error('Chat API error:', error);

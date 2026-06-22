@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { AzureCognitiveServices } from '@/lib/azure/cognitive-services';
+import { AIProvider } from '@/lib/ai';
 
 export const runtime = 'edge';
 
@@ -14,8 +14,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const cognitiveServices = new AzureCognitiveServices();
-    const result = await cognitiveServices.analyzeSentiment({ text });
+    const { text: resultJson } = await AIProvider.generate(
+      [{
+        role: 'system',
+        content: `Analyze the sentiment of the text and return ONLY JSON in this format: {"sentiment": "positive|neutral|negative", "confidence": 0.0-1.0}`
+      }, {
+        role: 'user',
+        content: text
+      }],
+      { temperature: 0.1, jsonMode: true }
+    );
+    
+    let result = { sentiment: 'neutral', confidence: 0.5 };
+    try {
+      result = JSON.parse(resultJson);
+    } catch {
+      // fallback
+    }
 
     return NextResponse.json(result);
   } catch (error) {

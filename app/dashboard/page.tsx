@@ -110,49 +110,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-[#020617] text-slate-200 flex">
-      {/* Sidebar */}
-      <aside className="w-64 bg-slate-950 border-r border-slate-800/50 hidden lg:flex flex-col">
-        <div className="p-6 flex items-center gap-2">
-          <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-500/20">
-            <Brain className="text-white w-5 h-5" />
-          </div>
-          <span className="text-xl font-bold tracking-tight text-white">Samvaad</span>
-        </div>
-
-        <nav className="flex-1 px-4 space-y-1">
-          <Link href="/dashboard">
-            <NavItem icon={<TrendingUp className="w-5 h-5" />} label="Overview" active={activeTab === 'overview'} />
-          </Link>
-          <Link href="/dashboard">
-            <NavItem icon={<Brain className="w-5 h-5" />} label="Cognitive Twin" active={activeTab === 'twin'} />
-          </Link>
-          <Link href="/dashboard/learning">
-            <NavItem icon={<BookOpen className="w-5 h-5" />} label="Learning Path" active={activeTab === 'learning'} />
-          </Link>
-          <Link href="/dashboard/chat">
-            <NavItem icon={<MessageSquare className="w-5 h-5" />} label="Advocacy Chat" active={activeTab === 'advocacy'} />
-          </Link>
-        </nav>
-
-        <div className="p-4 border-t border-slate-800/50">
-          <Link href="/dashboard/profile">
-            <NavItem icon={<Settings className="w-5 h-5" />} label="Settings" />
-          </Link>
-          <NavItem 
-            icon={<LogOut className="w-5 h-5" />} 
-            label="Logout"
-            onClick={async () => {
-              const supabase = createClient();
-              await supabase.auth.signOut();
-              window.location.href = '/';
-            }}
-          />
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
+    <>
         {/* Header */}
         <header className="h-16 bg-[#020617]/80 backdrop-blur-xl border-b border-slate-800/50 flex items-center justify-between px-8 sticky top-0 z-10">
           <div className="flex items-center gap-4 flex-1">
@@ -439,8 +397,7 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
-      </main>
-    </div>
+    </>
   );
 }
 
