@@ -143,7 +143,6 @@ export default function Dashboard() {
             desc="Voice your thoughts and ideas." 
             href="/dashboard/chat" 
             delay={0.7} 
-            hasStitch={true}
           />
           
           <FeatureTile 
@@ -166,37 +165,28 @@ export default function Dashboard() {
   );
 }
 
-function FeatureTile({ title, desc, href, delay, hasStitch = false }: { title: string, desc: string, href: string, delay: number, hasStitch?: boolean }) {
-  const router = useRouter();
-  
+import Link from "next/link";
+
+function FeatureTile({ title, desc, href, delay }: { title: string, desc: string, href: string, delay: number }) {
   return (
-    <motion.button
-      onClick={() => router.push(href)}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 1, delay, ease: "easeOut" }}
-      className={`w-full relative flex flex-col justify-end text-left p-10 h-[380px] group overflow-hidden bg-[#111111] hover:bg-[#151515] transition-colors duration-500`}
+      className="w-full"
     >
-      {/* Optional Glow for Express card */}
-      {hasStitch && (
-        <>
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(255,255,255,0.03)_0%,_transparent_70%)]" />
-          {/* Subtle particle simulation effect using simple CSS */}
-          <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/5 blur-3xl rounded-full opacity-50" />
-          <div className="absolute top-20 right-20 w-20 h-20 bg-white/5 blur-2xl rounded-full opacity-30" />
-        </>
-      )}
-
-      <div className="relative z-10">
-        <h2 className="text-[32px] font-serif text-[#F5F5F5] mb-2">{title}</h2>
-        <p className="text-[#888888] font-sans text-sm tracking-wide">{desc}</p>
-      </div>
-
-      {hasStitch && (
-        <div className="absolute bottom-10 right-8 bg-[#1A1A1A] border border-[#333333] px-5 py-2.5 rounded-sm shadow-2xl z-20 hover:bg-[#222222] transition-colors">
-          <span className="text-[15px] font-sans text-[#E5E5E5]">Stitch - Design with AI</span>
+      <Link 
+        href={href}
+        className="group relative block w-full aspect-[4/5] md:aspect-[3/4] bg-[#111111] rounded-[24px] overflow-hidden border border-[#222222] hover:border-[#444444] transition-colors"
+      >
+        <div className="absolute inset-0 p-8 flex flex-col justify-end z-10">
+          <h3 className="text-3xl font-serif text-[#E5E5E5] mb-4 group-hover:translate-x-2 transition-transform duration-500">{title}</h3>
+          <p className="text-[12px] text-[#888888] leading-relaxed max-w-[80%]">{desc}</p>
         </div>
-      )}
-    </motion.button>
+
+        {/* Subtle Gradient Hover */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent opacity-80 z-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+      </Link>
+    </motion.div>
   );
 }

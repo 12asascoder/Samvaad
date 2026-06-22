@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Newsreader } from "next/font/google";
+import { TwinPresence } from "@/components/ui/TwinPresence";
 import "./globals.css";
 
 const inter = Inter({
@@ -34,6 +35,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.variable} ${newsreader.variable} font-sans antialiased bg-space-900 text-ink-900`}>
         {children}
+        <TwinPresence />
       </body>
     </html>
   );
